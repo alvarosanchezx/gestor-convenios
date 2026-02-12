@@ -1,4 +1,4 @@
-import { Home, FileText, Scale, Bell, Settings, BookOpen } from 'lucide-react';
+import { Home, FileText, Scale, Bell } from 'lucide-react';
 
 interface SidebarProps {
   activeView: string;
@@ -13,7 +13,6 @@ export function Sidebar({ activeView, onViewChange }: SidebarProps) {
     { id: 'comparador', label: 'Comparador', icon: Scale },
     { id: 'actualizaciones', label: 'Últimas Actualizaciones', icon: FileText },
     { id: 'notificaciones', label: 'Notificaciones', icon: Bell },
-    { id: 'configuracion', label: 'Configuración', icon: Settings },
   ];
 
   return (
@@ -24,8 +23,8 @@ export function Sidebar({ activeView, onViewChange }: SidebarProps) {
             <Scale className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-semibold text-gray-900 dark:text-white">Convenios</h1>
-            <p className="text-xs text-gray-600 dark:text-gray-400">Colectivos</p>
+            <h1 className="text-lg font-semibold text-gray-900 dark:text-white">Convenios Colectivos</h1>
+            <p className="text-xs text-gray-600 dark:text-gray-400">Gestión Laboral</p>
           </div>
         </div>
       </div>

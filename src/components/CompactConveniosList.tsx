@@ -1,12 +1,18 @@
+import { useState } from 'react';
+import { Trash2 } from 'lucide-react';
 import { Convenio } from '../types/convenio';
+import { useConvenios } from '../contexts/ConveniosContext';
 
 interface CompactConveniosListProps {
   convenios: Convenio[];
   loading: boolean;
   onSelect: (convenio: Convenio) => void;
+  showDeleteButton?: boolean;
 }
 
-export function CompactConveniosList({ convenios, loading, onSelect }: CompactConveniosListProps) {
+export function CompactConveniosList({ convenios, loading, onSelect, showDeleteButton = false }: CompactConveniosListProps) {
+  const [hoveredRow, setHoveredRow] = useState<string | null>(null);
+  const { toggleSubscription } = useConvenios();
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
@@ -56,28 +62,47 @@ export function CompactConveniosList({ convenios, loading, onSelect }: CompactCo
               <th className="px-4 py-3 text-left font-semibold text-gray-900 dark:text-white">Sector</th>
               <th className="px-4 py-3 text-left font-semibold text-gray-900 dark:text-white">Vigencia</th>
               <th className="px-4 py-3 text-left font-semibold text-gray-900 dark:text-white">Estado</th>
+              {showDeleteButton && (
+                <th className="px-4 py-3 w-16"></th>
+              )}
             </tr>
           </thead>
           <tbody>
             {convenios.map((convenio) => (
               <tr
                 key={convenio.id}
-                onClick={() => onSelect(convenio)}
-                className="border-t border-gray-200 dark:border-slate-700 hover:bg-blue-50 dark:hover:bg-blue-900/10 cursor-pointer transition-colors"
+                onMouseEnter={() => setHoveredRow(convenio.id)}
+                onMouseLeave={() => setHoveredRow(null)}
+                className="border-t border-gray-200 dark:border-slate-700 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-colors group"
               >
-                <td className="px-4 py-3 text-gray-900 dark:text-white font-medium hover:text-blue-700 dark:hover:text-blue-400">
+                <td
+                  onClick={() => onSelect(convenio)}
+                  className="px-4 py-3 text-gray-900 dark:text-white font-medium hover:text-blue-700 dark:hover:text-blue-400 cursor-pointer"
+                >
                   {convenio.nombre}
                 </td>
-                <td className="px-4 py-3 text-gray-600 dark:text-gray-400 font-mono text-xs">
+                <td
+                  onClick={() => onSelect(convenio)}
+                  className="px-4 py-3 text-gray-600 dark:text-gray-400 font-mono text-xs cursor-pointer"
+                >
                   {convenio.codigo || 'N/A'}
                 </td>
-                <td className="px-4 py-3 text-gray-600 dark:text-gray-400 capitalize">
+                <td
+                  onClick={() => onSelect(convenio)}
+                  className="px-4 py-3 text-gray-600 dark:text-gray-400 capitalize cursor-pointer"
+                >
                   {convenio.ambito}
                 </td>
-                <td className="px-4 py-3 text-gray-600 dark:text-gray-400">
+                <td
+                  onClick={() => onSelect(convenio)}
+                  className="px-4 py-3 text-gray-600 dark:text-gray-400 cursor-pointer"
+                >
                   {convenio.sector || 'N/A'}
                 </td>
-                <td className="px-4 py-3 text-gray-600 dark:text-gray-400 text-xs whitespace-nowrap">
+                <td
+                  onClick={() => onSelect(convenio)}
+                  className="px-4 py-3 text-gray-600 dark:text-gray-400 text-xs whitespace-nowrap cursor-pointer"
+                >
                   {convenio.fecha_vigencia_inicio ? (
                     <>
                       {formatDate(convenio.fecha_vigencia_inicio)}
@@ -88,11 +113,36 @@ export function CompactConveniosList({ convenios, loading, onSelect }: CompactCo
                     'N/A'
                   )}
                 </td>
-                <td className="px-4 py-3">
+                <td
+                  onClick={() => onSelect(convenio)}
+                  className="px-4 py-3 cursor-pointer"
+                >
                   <span className={getEstadoBadge(convenio.estado)}>
                     {convenio.estado}
                   </span>
                 </td>
+                {showDeleteButton && (
+                  <td className="px-4 py-3">
+                    <button
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        try {
+                          await toggleSubscription(convenio.id);
+                        } catch (error) {
+                          console.error('Error removing subscription:', error);
+                        }
+                      }}
+                      className={`p-2 rounded transition-all ${
+                        hoveredRow === convenio.id
+                          ? 'opacity-100 hover:bg-red-100 dark:hover:bg-red-900/20 text-red-700 dark:text-red-400'
+                          : 'opacity-0'
+                      }`}
+                      title="Eliminar convenio"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

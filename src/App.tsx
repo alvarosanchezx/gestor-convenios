@@ -9,16 +9,17 @@ import { Comparador } from './components/Comparador';
 import { LatestUpdates } from './components/LatestUpdates';
 import { Notificaciones } from './components/Notificaciones';
 import { useTheme } from './contexts/ThemeContext';
+import { useConvenios } from './contexts/ConveniosContext';
 import { supabase } from './lib/supabase';
 import { Convenio, ConvenioStats } from './types/convenio';
 
 function App() {
   const { theme, toggleTheme } = useTheme();
+  const { subscribedConvenios, refreshSubscriptions } = useConvenios();
   const [activeView, setActiveView] = useState('dashboard');
   const [convenios, setConvenios] = useState<Convenio[]>([]);
   const [filteredConvenios, setFilteredConvenios] = useState<Convenio[]>([]);
   const [selectedConvenio, setSelectedConvenio] = useState<Convenio | null>(null);
-  const [comparadorItems, setComparadorItems] = useState<Convenio[]>([]);
   const [stats, setStats] = useState<ConvenioStats>({
     total: 0,
     vigentes: 0,
@@ -111,47 +112,28 @@ function App() {
 
   const handleSelectConvenio = (convenio: Convenio) => {
     setSelectedConvenio(convenio);
+    setActiveView('convenio-detail');
   };
 
-  const handleAddToComparador = (convenio: Convenio) => {
-    if (!comparadorItems.find((c) => c.id === convenio.id)) {
-      setComparadorItems([...comparadorItems.slice(-2), convenio]);
-    }
-  };
-
-  const handleRemoveFromComparador = (convenioId: string) => {
-    setComparadorItems((prev) => prev.filter((c) => c.id !== convenioId));
-  };
-
-  const handleAddToSuscripciones = async (convenio: Convenio) => {
-    try {
-      const { error } = await supabase
-        .from('convenio_suscripciones')
-        .insert({ convenio_id: convenio.id });
-
-      if (error) throw error;
-      alert('Convenio añadido a tus suscritos');
-    } catch (error) {
-      console.error('Error adding subscription:', error);
+  const handleViewChange = (view: string) => {
+    setActiveView(view);
+    if (view !== 'convenio-detail') {
+      setSelectedConvenio(null);
     }
   };
 
   const renderMainContent = () => {
-    if (selectedConvenio) {
+    if (selectedConvenio && activeView === 'convenio-detail') {
       return (
         <div className="flex-1 p-8 overflow-y-auto">
           <div className="max-w-5xl mx-auto">
             <button
-              onClick={() => setSelectedConvenio(null)}
+              onClick={() => handleViewChange('dashboard')}
               className="mb-6 px-4 py-2 text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors font-medium"
             >
               ← Volver al Dashboard
             </button>
-            <ConvenioDetail
-              convenio={selectedConvenio}
-              onAddToComparador={handleAddToComparador}
-              onAddToSuscripciones={handleAddToSuscripciones}
-            />
+            <ConvenioDetail convenio={selectedConvenio} />
           </div>
         </div>
       );
@@ -242,7 +224,7 @@ function App() {
               <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
                 Comparador de Convenios
               </h2>
-              <Comparador items={comparadorItems} onRemove={handleRemoveFromComparador} />
+              <Comparador />
             </div>
           </div>
         )}
@@ -264,22 +246,7 @@ function App() {
               <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
                 Notificaciones
               </h2>
-              <Notificaciones convenios={convenios} />
-            </div>
-          </div>
-        )}
-
-        {activeView === 'configuracion' && (
-          <div className="flex-1 p-8 overflow-y-auto">
-            <div className="max-w-7xl mx-auto">
-              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
-                Configuración
-              </h2>
-              <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg p-6">
-                <p className="text-gray-600 dark:text-gray-400">
-                  Sección de configuración disponible próximamente
-                </p>
-              </div>
+              <Notificaciones />
             </div>
           </div>
         )}
@@ -289,7 +256,7 @@ function App() {
 
   return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-slate-950 transition-colors">
-      <Sidebar activeView={activeView} onViewChange={setActiveView} />
+      <Sidebar activeView={activeView} onViewChange={handleViewChange} />
 
       <main className="flex-1 flex flex-col overflow-hidden">
         {renderMainContent()}

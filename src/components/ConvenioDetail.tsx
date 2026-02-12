@@ -1,20 +1,22 @@
-import { Download, Plus, Scale } from 'lucide-react';
+import { Download, Plus, Scale, Bell, Check, Minus } from 'lucide-react';
 import { Convenio, Publicacion } from '../types/convenio';
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { useConvenios } from '../contexts/ConveniosContext';
+import { NotificationModal } from './NotificationModal';
 
 interface ConvenioDetailProps {
   convenio: Convenio;
-  onAddToComparador: (convenio: Convenio) => void;
-  onAddToSuscripciones?: (convenio: Convenio) => void;
 }
 
 type TabType = 'tablas' | 'detalles' | 'publicaciones' | 'descarga';
 
-export function ConvenioDetail({ convenio, onAddToComparador, onAddToSuscripciones }: ConvenioDetailProps) {
+export function ConvenioDetail({ convenio }: ConvenioDetailProps) {
   const [activeTab, setActiveTab] = useState<TabType>('detalles');
   const [publicaciones, setPublicaciones] = useState<Publicacion[]>([]);
   const [loadingPubs, setLoadingPubs] = useState(false);
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const { isSubscribed, toggleSubscription, isInComparador, toggleComparador } = useConvenios();
 
   useEffect(() => {
     const fetchPublicaciones = async () => {
@@ -69,23 +71,61 @@ export function ConvenioDetail({ convenio, onAddToComparador, onAddToSuscripcion
             <p className="text-sm text-gray-600 dark:text-gray-400 font-mono mt-1">{convenio.codigo}</p>
           )}
         </div>
-        <div className="flex gap-3 flex-shrink-0">
-          {onAddToSuscripciones && (
-            <button
-              onClick={() => onAddToSuscripciones(convenio)}
-              className="flex items-center gap-2 px-4 py-2 bg-emerald-700 text-white hover:bg-emerald-800 rounded transition-colors font-medium text-sm"
-            >
-              <Plus className="w-4 h-4" />
-              Añadir Convenio
-            </button>
-          )}
+        <div className="flex flex-wrap gap-3 flex-shrink-0">
           <button
-            onClick={() => onAddToComparador(convenio)}
-            className="flex items-center gap-2 px-3 py-2 bg-blue-700 text-white hover:bg-blue-800 rounded transition-colors font-medium text-sm"
-            title="Añadir al comparador"
+            onClick={async () => {
+              try {
+                await toggleSubscription(convenio.id);
+              } catch (error) {
+                console.error('Error toggling subscription:', error);
+              }
+            }}
+            className={`flex items-center gap-2 px-4 py-2 rounded transition-colors font-medium text-sm ${
+              isSubscribed(convenio.id)
+                ? 'bg-emerald-100 text-emerald-900 dark:bg-emerald-900/30 dark:text-emerald-300 border-2 border-emerald-700 dark:border-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/40'
+                : 'bg-emerald-700 text-white hover:bg-emerald-800'
+            }`}
           >
-            <Scale className="w-4 h-4" />
-            Comparador
+            {isSubscribed(convenio.id) ? (
+              <>
+                <Check className="w-4 h-4" />
+                Convenio Añadido
+              </>
+            ) : (
+              <>
+                <Plus className="w-4 h-4" />
+                Añadir Convenio
+              </>
+            )}
+          </button>
+          <button
+            onClick={() => toggleComparador(convenio.id)}
+            className={`flex items-center gap-2 px-3 py-2 rounded transition-colors font-medium text-sm ${
+              isInComparador(convenio.id)
+                ? 'bg-blue-100 text-blue-900 dark:bg-blue-900/30 dark:text-blue-300 border-2 border-blue-700 dark:border-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/40'
+                : 'bg-blue-700 text-white hover:bg-blue-800'
+            }`}
+            title={isInComparador(convenio.id) ? 'Quitar del comparador' : 'Añadir al comparador'}
+          >
+            {isInComparador(convenio.id) ? (
+              <>
+                <Check className="w-4 h-4" />
+                En Comparador
+              </>
+            ) : (
+              <>
+                <Scale className="w-4 h-4" />
+                Añadir al comparador
+              </>
+            )}
+          </button>
+          <button
+            onClick={() => setShowNotificationModal(true)}
+            className="flex items-center gap-2 px-3 py-2 bg-amber-700 text-white hover:bg-amber-800 rounded transition-colors font-medium text-sm"
+            title="Configurar notificaciones"
+          >
+            <Bell className="w-4 h-4" />
+            Notificaciones
           </button>
         </div>
       </div>
@@ -279,6 +319,13 @@ export function ConvenioDetail({ convenio, onAddToComparador, onAddToSuscripcion
           )}
         </div>
       </div>
+
+      <NotificationModal
+        convenioId={convenio.id}
+        convenioNombre={convenio.nombre}
+        isOpen={showNotificationModal}
+        onClose={() => setShowNotificationModal(false)}
+      />
     </div>
   );
 }
