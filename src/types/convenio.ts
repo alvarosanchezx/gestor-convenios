@@ -11,6 +11,9 @@ export interface Convenio {
   estado: string;
   contenido: string | null;
   datos_completos?: Record<string, any>;
+  provincia?: string | null;
+  comunidad_autonoma?: string | null;
+  ciudad?: string | null;
   created_at: string;
   updated_at: string;
 }

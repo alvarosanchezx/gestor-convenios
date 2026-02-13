@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Plus } from 'lucide-react';
 import { Convenio } from '../types/convenio';
 import { useConvenios } from '../contexts/ConveniosContext';
 
@@ -8,11 +8,12 @@ interface CompactConveniosListProps {
   loading: boolean;
   onSelect: (convenio: Convenio) => void;
   showDeleteButton?: boolean;
+  showSubscribeButton?: boolean;
 }
 
-export function CompactConveniosList({ convenios, loading, onSelect, showDeleteButton = false }: CompactConveniosListProps) {
+export function CompactConveniosList({ convenios, loading, onSelect, showDeleteButton = false, showSubscribeButton = true }: CompactConveniosListProps) {
   const [hoveredRow, setHoveredRow] = useState<string | null>(null);
-  const { toggleSubscription } = useConvenios();
+  const { toggleSubscription, isSubscribed } = useConvenios();
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
@@ -62,8 +63,8 @@ export function CompactConveniosList({ convenios, loading, onSelect, showDeleteB
               <th className="px-4 py-3 text-left font-semibold text-gray-900 dark:text-white">Sector</th>
               <th className="px-4 py-3 text-left font-semibold text-gray-900 dark:text-white">Vigencia</th>
               <th className="px-4 py-3 text-left font-semibold text-gray-900 dark:text-white">Estado</th>
-              {showDeleteButton && (
-                <th className="px-4 py-3 w-16"></th>
+              {(showDeleteButton || showSubscribeButton) && (
+                <th className="px-4 py-3 w-24"></th>
               )}
             </tr>
           </thead>
@@ -91,7 +92,16 @@ export function CompactConveniosList({ convenios, loading, onSelect, showDeleteB
                   onClick={() => onSelect(convenio)}
                   className="px-4 py-3 text-gray-600 dark:text-gray-400 capitalize cursor-pointer"
                 >
-                  {convenio.ambito}
+                  <div>
+                    <p className="capitalize">{convenio.ambito}</p>
+                    {(convenio.ambito === 'provincial' || convenio.ambito === 'autonómico') && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {convenio.provincia && <span>{convenio.provincia}</span>}
+                        {convenio.provincia && convenio.comunidad_autonoma && <span>, </span>}
+                        {convenio.comunidad_autonoma && <span>{convenio.comunidad_autonoma}</span>}
+                      </p>
+                    )}
+                  </div>
                 </td>
                 <td
                   onClick={() => onSelect(convenio)}
@@ -121,26 +131,54 @@ export function CompactConveniosList({ convenios, loading, onSelect, showDeleteB
                     {convenio.estado}
                   </span>
                 </td>
-                {showDeleteButton && (
+                {(showDeleteButton || showSubscribeButton) && (
                   <td className="px-4 py-3">
-                    <button
-                      onClick={async (e) => {
-                        e.stopPropagation();
-                        try {
-                          await toggleSubscription(convenio.id);
-                        } catch (error) {
-                          console.error('Error removing subscription:', error);
-                        }
-                      }}
-                      className={`p-2 rounded transition-all ${
-                        hoveredRow === convenio.id
-                          ? 'opacity-100 hover:bg-red-100 dark:hover:bg-red-900/20 text-red-700 dark:text-red-400'
-                          : 'opacity-0'
-                      }`}
-                      title="Eliminar convenio"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      {showSubscribeButton && (
+                        <button
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            try {
+                              await toggleSubscription(convenio.id);
+                            } catch (error) {
+                              console.error('Error toggling subscription:', error);
+                            }
+                          }}
+                          className={`p-1.5 rounded transition-all ${
+                            hoveredRow === convenio.id
+                              ? 'opacity-100'
+                              : 'opacity-0'
+                          } ${
+                            isSubscribed(convenio.id)
+                              ? 'bg-emerald-100 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/30'
+                              : 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/30'
+                          }`}
+                          title={isSubscribed(convenio.id) ? 'Suscrito' : 'Añadir convenio'}
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+                      )}
+                      {showDeleteButton && (
+                        <button
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            try {
+                              await toggleSubscription(convenio.id);
+                            } catch (error) {
+                              console.error('Error removing subscription:', error);
+                            }
+                          }}
+                          className={`p-1.5 rounded transition-all ${
+                            hoveredRow === convenio.id
+                              ? 'opacity-100 hover:bg-red-100 dark:hover:bg-red-900/20 text-red-700 dark:text-red-400'
+                              : 'opacity-0'
+                          }`}
+                          title="Eliminar convenio"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
                   </td>
                 )}
               </tr>

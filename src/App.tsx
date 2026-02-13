@@ -173,7 +173,12 @@ function App() {
                   </p>
                 </div>
 
-                <StatsCards stats={stats} loading={loading} />
+                <StatsCards
+                  stats={stats}
+                  loading={loading}
+                  onFilterChange={(filter) => setSelectedEstado(filter || '')}
+                  currentFilter={selectedEstado || null}
+                />
 
                 <div className="mb-6">
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
@@ -185,6 +190,7 @@ function App() {
                   convenios={filteredConvenios}
                   loading={loading}
                   onSelect={handleSelectConvenio}
+                  showSubscribeButton={true}
                 />
               </div>
             </div>
@@ -212,6 +218,7 @@ function App() {
                   convenios={filteredConvenios}
                   loading={loading}
                   onSelect={handleSelectConvenio}
+                  showSubscribeButton={true}
                 />
               </div>
             </div>

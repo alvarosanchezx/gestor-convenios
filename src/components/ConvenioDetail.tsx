@@ -194,6 +194,13 @@ export function ConvenioDetail({ convenio }: ConvenioDetailProps) {
                       Ámbito
                     </p>
                     <p className="text-gray-900 dark:text-white capitalize">{convenio.ambito}</p>
+                    {(convenio.ambito === 'provincial' || convenio.ambito === 'autonómico') && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        {convenio.provincia && <span>{convenio.provincia}</span>}
+                        {convenio.provincia && convenio.comunidad_autonoma && <span>, </span>}
+                        {convenio.comunidad_autonoma && <span>{convenio.comunidad_autonoma}</span>}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">

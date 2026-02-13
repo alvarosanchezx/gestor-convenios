@@ -19,11 +19,14 @@ export function Sidebar({ activeView, onViewChange }: SidebarProps) {
     <aside className="w-64 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-700 flex flex-col h-screen sticky top-0">
       <div className="p-6 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-b from-blue-50 to-white dark:from-slate-800 dark:to-slate-900">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-blue-700 rounded flex items-center justify-center">
+          <div className="w-10 h-10 bg-blue-700 rounded flex items-center justify-center flex-shrink-0">
             <Scale className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-semibold text-gray-900 dark:text-white">Convenios Colectivos</h1>
+            <div className="flex items-baseline gap-1">
+              <h1 className="text-lg font-semibold text-gray-900 dark:text-white">Convenios</h1>
+              <span className="text-lg font-semibold text-blue-700 dark:text-blue-400">Colectivos</span>
+            </div>
             <p className="text-xs text-gray-600 dark:text-gray-400">Gestión Laboral</p>
           </div>
         </div>
